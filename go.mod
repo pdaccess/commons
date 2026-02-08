@@ -1,4 +1,4 @@
-module git.h2hsecure.com/pda/commons
+module github.com/pdaccess/commons
 
 go 1.25.6
 
