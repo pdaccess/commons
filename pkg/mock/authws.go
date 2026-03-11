@@ -7,8 +7,8 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"git.h2hsecure.com/pda/commons/pkg/domain"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/pdaccess/commons/pkg/domain"
 	"github.com/rs/zerolog/log"
 )
 

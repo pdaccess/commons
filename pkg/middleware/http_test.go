@@ -5,9 +5,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"git.h2hsecure.com/pda/commons/pkg/domain"
-	"git.h2hsecure.com/pda/commons/pkg/middleware"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/pdaccess/commons/pkg/domain"
+	"github.com/pdaccess/commons/pkg/middleware"
 )
 
 type mockHandler struct{}

@@ -6,8 +6,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func LogWithContext(context string) func(values ...interface{}) {
-	return func(values ...interface{}) {
+func LogWithContext(context string) func(values ...any) {
+	return func(values ...any) {
 		event := log.Info().
 			Str("context", context)
 

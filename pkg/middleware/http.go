@@ -8,7 +8,7 @@ import (
 
 	"strings"
 
-	common_domain "git.h2hsecure.com/pda/commons/pkg/domain"
+	common_domain "github.com/pdaccess/commons/pkg/domain"
 
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
