@@ -14,7 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func authzInterceptor(
+func AuthzInterceptor(
 	isExemptMethod func(string) bool,
 	validator func(context.Context, string) (*domain.PdaccessClaims, error),
 ) func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
@@ -53,7 +53,7 @@ func authzInterceptor(
 	}
 }
 
-func loggingInterceptor(isExemptMethod func(string) bool) func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
+func LoggingInterceptor(isExemptMethod func(string) bool) func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		startTime := time.Now()
 
@@ -98,7 +98,7 @@ func loggingInterceptor(isExemptMethod func(string) bool) func(ctx context.Conte
 	}
 }
 
-func loggingStreamInterceptor(isExemptMethod func(string) bool) func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+func LoggingStreamInterceptor(isExemptMethod func(string) bool) func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 	return func(srv any, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
 		startTime := time.Now()
 		methodName := extractMethodName(info.FullMethod)
