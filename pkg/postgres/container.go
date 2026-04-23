@@ -3,74 +3,50 @@ package postgres
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/docker/go-connections/nat"
-	"github.com/pdaccess/commons/pkg/logs"
 	"github.com/rs/zerolog/log"
-	testcontainers "github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go"
+	"github.com/testcontainers/testcontainers-go/modules/postgres"
+	"github.com/testcontainers/testcontainers-go/network"
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 var (
-	postgres testcontainers.Container
+	postgresContainer *postgres.PostgresContainer
 )
 
-func CreatePostgresqlDb(ctx context.Context) (*string, *int, error) {
+func CreatePostgresqlDb(ctx context.Context, net *testcontainers.DockerNetwork) (string, error) {
 	log.Info().
 		Str("ctx", "postgres").
 		Msg("Postgresql database starting...")
 
-	postgresPort := nat.Port("5432/tcp")
-
-	req := testcontainers.ContainerRequest{
-		Image: "registry.h2hsecure.com/pda/postgresqldb:latest",
-		Env: map[string]string{
-			"POSTGRES_PASSWORD": "password",
-		},
-		ExposedPorts: []string{string(postgresPort)},
-		WaitingFor:   wait.ForAll(wait.ForExposedPort()),
-		Hostname:     "postgresqldb",
-	}
-
 	var err error
-
-	postgres, err = testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
-		ProviderType:     testcontainers.ProviderDefault,
-		ContainerRequest: req,
-		Started:          true,
-	})
-
-	if err != nil {
-		return nil, nil, fmt.Errorf("postgres container start %w", err)
-	}
-
-	if err := postgres.StartLogProducer(ctx); err != nil {
-		return nil, nil, fmt.Errorf("postgres log producer: %w", err)
-	}
-
-	postgres.FollowOutput(logs.NewContainerLogger("postgres"))
-
-	postgresHost, err := postgres.Host(ctx)
-	if err != nil {
-		return nil, nil, fmt.Errorf("postgres container host: %w", err)
-	}
-
-	postgresPorts, err := postgres.MappedPort(ctx, postgresPort)
+	postgresContainer, err = postgres.Run(ctx,
+		"docker.io/postgres:17-alpine",
+		network.WithNetwork([]string{"postgresql"}, net),
+		postgres.WithDatabase("pda"),
+		postgres.WithUsername("pda"),
+		postgres.WithPassword("pda"),
+		testcontainers.WithWaitStrategy(
+			wait.ForLog("database system is ready to accept connections").
+				WithOccurrence(2).
+				WithStartupTimeout(10*time.Second)),
+	)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("postgres container host: %w", err)
+		return "", fmt.Errorf("postgres container start %w", err)
 	}
-	port := postgresPorts.Int()
 
-	return &postgresHost, &port, nil
+	return postgresContainer.ConnectionString(ctx, "sslmode=disable")
 }
 
 func PostgresTerminate(ctx context.Context) error {
-	if err := postgres.StopLogProducer(); err != nil {
+	if err := postgresContainer.StopLogProducer(); err != nil {
 		return fmt.Errorf("stop logging: %w", err)
 	}
 
-	if err := postgres.Terminate(ctx); err != nil {
+	if err := postgresContainer.Terminate(ctx); err != nil {
 		return fmt.Errorf("stop logging: %w", err)
 	}
 
